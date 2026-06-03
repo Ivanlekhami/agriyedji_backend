@@ -1,7 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-import cv2
-import numpy as np
 from PIL import Image
 import io
 
@@ -38,19 +36,20 @@ def read_root():
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
+        # 1. Lecture sécurisée de la photo avec Pillow
         request_object_content = await file.read()
-        img_pil = Image.open(io.BytesIO(request_object_content)).convert("RGB")
+        img = Image.open(io.BytesIO(request_object_content)).convert("RGB")
         
-        open_cv_image = np.array(img_pil)
-        open_cv_image = open_cv_image[:, :, ::-1].copy()
+        # 2. Extraction d'une valeur mathématique simple sur les pixels (Simule l'analyse)
+        # On récupère les coordonnées de luminosité moyenne
+        pixels = list(img.resize((10, 10)).getdata())
+        pixel_sum = sum([sum(p) for p in pixels])
         
-        mean_channels = cv2.mean(open_cv_image)
-        pixel_sum = int(sum(mean_channels))
-        
+        # 3. Mapping sur le catalogue tchadien
         highest_pred_index = pixel_sum % len(LABELS)
         
-        laplacian_var = cv2.Laplacian(cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var()
-        confidence = min(max(laplacian_var / 500.0, 0.65), 0.98)
+        # Confiance stable simulée
+        confidence = 0.85 + ((pixel_sum % 13) / 100.0)
 
         return {
             "label": LABELS[highest_pred_index],
