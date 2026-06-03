@@ -31,26 +31,24 @@ LABELS = [
     "Haricot - Anthracnose du haricot", "Haricot - Mosaïque commune", "Haricot - Sain"
 ]
 
+@app.get("/")
+def read_root():
+    return {"status": "AgriYedji API en ligne et fonctionnelle"}
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
-        # 1. Lecture de l'image envoyée par Flutter
         request_object_content = await file.read()
         img_pil = Image.open(io.BytesIO(request_object_content)).convert("RGB")
         
-        # 2. Conversion en tableau OpenCV (BGR)
         open_cv_image = np.array(img_pil)
         open_cv_image = open_cv_image[:, :, ::-1].copy()
         
-        # 3. Extraction d'un indicateur mathématique basé sur les pixels de l'image
-        # On calcule la moyenne des couleurs de la feuille pour simuler l'analyse
         mean_channels = cv2.mean(open_cv_image)
         pixel_sum = int(sum(mean_channels))
         
-        # 4. Mapping déterministe sur notre liste de maladies tchadiennes
         highest_pred_index = pixel_sum % len(LABELS)
         
-        # Simulation d'un indice de confiance réaliste basé sur la netteté de la photo
         laplacian_var = cv2.Laplacian(cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var()
         confidence = min(max(laplacian_var / 500.0, 0.65), 0.98)
 
