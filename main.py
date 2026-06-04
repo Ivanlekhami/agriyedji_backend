@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from PIL import Image
 import io
+import os
 import json
 
 app = FastAPI()
@@ -16,8 +17,8 @@ app.add_middleware(
 )
 
 # 1. Initialisation du client Gemini
-# Remplace par ta vraie clé API obtenue sur Google AI Studio
-GEMINI_API_KEY = "AIzaSyBEDvr4Nyjda972se9LmIsh0n-JVe6aOiI"
+# Le serveur va lire la clé de manière cachée et sécurisée
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.get("/")
