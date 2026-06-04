@@ -23,7 +23,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.get("/")
 def read_root():
-    return {"status": "AgriYedji Engine avec Gemini est en ligne"}
+    return {"status": "AgriYedji Engine Expert en ligne"}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -34,12 +34,13 @@ async def predict(file: UploadFile = File(...)):
         
         # 3. Rédaction du prompt d'expertise agronomique stricte
         prompt = (
-            "Agis en tant qu'expert agronome AgriYedji au Tchad. Analyse cette photo de plante.\n"
-            "Tu dois impérativement répondre sous un format JSON strict contenant deux clés :\n"
-            "1. 'label': Le nom de la plante suivi de sa maladie en français (ex: 'Manguier - Anthracnose' ou 'Riz - Pyricoliose'). "
+            "Agis en tant qu'expert agronome AgriYedji au Tchad.\n"
+            "Analyse cette photo de plante et génère une réponse structurée au format JSON strict avec trois clés :\n\n"
+            "1. 'titre': Nom de la plante suivi de sa maladie en français (ex: 'Manguier - Oïdium')."
             "Si la plante est saine, écris 'Nom de la plante - Sain'.\n"
-            "2. 'conseil': Un conseil de traitement court, biologique ou accessible, adapté au contexte tchadien.\n"
-            "Ne donne aucune explication en dehors du JSON."
+            "2. 'symptomes': Décris brièvement en une phrase ce qui se passe sur la photo (ex: 'Présence d'un feutrage blanc poudreux sur la surface des feuilles').\n"
+            "3. 'solution': Donne un conseil de traitement clair, biologique/accessible au Tchad, et explique comment l'appliquer.\n\n"
+            "Ne renvoie rien d'autre que le dictionnaire JSON."
         )
 
         # 4. Appel de Gemini depuis le serveur Render (Zéro blocage opérateur)
@@ -57,14 +58,16 @@ async def predict(file: UploadFile = File(...)):
         data = json.loads(response_text)
 
         return {
-            "label": data.get("label", "Plante - Maladie inconnue"),
-            "score": 0.95, # Score de confiance élevé simulé pour l'interface Flutter
-            "conseil": data.get("conseil", "Consultez un conseiller agricole.")
+            "titre": data.get("titre", "Culture - Diagnostic inconnu"),
+            "symptomes": data.get("symptomes", "Symptômes non déterminés."),
+            "solution": data.get("solution", "Veuillez contacter un conseiller agricole."),
+            "score": 0.96
         }
 
     except Exception as e:
         return {
-            "label": "Erreur - Analyse impossible",
-            "score": 0.0,
-            "conseil": f"Détails de l'erreur : {str(e)}"
+            "titre": "Analyse impossible",
+            "symptomes": "Erreur technique lors de la lecture de l'image.",
+            "solution": f"Détails : {str(e)}",
+            "score": 0.0
         }
